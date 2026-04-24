@@ -25,7 +25,6 @@ export default function Home() {
 
       if(res.data.error){
         setErr(res.data.error);
-        setFiles([]);
         return;
       }
       setFiles(res.data.files || []); // res.data.file stored
