@@ -51,6 +51,10 @@ export default function Home() {
           >
             {loading ? "Analyzing..." : "Analyze Repo"}
           </button>
+          {/*Error*/}
+          {err && (
+              <p className="mt-4 text-sm text-red-500">{err}</p>
+          )}
 
           {/* Files */}
           <div className="mt-6 space-y-2">
