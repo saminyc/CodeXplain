@@ -1,26 +1,39 @@
-"use client";
+"use client"; // client architecture
 
 import { useState } from "react";
 import axios from "axios";
 
-type File = {
+type RepoFile = { // the files that we get from request, we describe the blueprint
   name: string;
+  type: string;
 };
 
 export default function Home() {
+  const [err, setErr]=useState("");
   const [repoUrl, setRepoUrl] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<RepoFile[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Function to fetch the repo using axios
   const fetchRepo=async ()=>{
     try {
       setLoading(true);
-      const res = await axios.post("https://github/", {repoUrl})
-      setFiles(res.data.files);
+      setErr("");
+      const res = await axios.post("/api/github",{repoUrl})
+      console.log(res) // returns an obj type, we only need res.data.file
+      console.log("API response:", res.data);
+
+      if(res.data.error){
+        setErr(res.data.error);
+        setFiles([]);
+        return;
+      }
+      setFiles(res.data.files || []); // res.data.file stored
     }
     catch (error) {
       console.error(error);
+      setErr("Something went wrong");
+      setFiles([]);
     }
     finally {
       setLoading(false);
@@ -56,9 +69,9 @@ export default function Home() {
               <p className="mt-4 text-sm text-red-500">{err}</p>
           )}
 
-          {/* Files */}
+          {/* Display Files */}
           <div className="mt-6 space-y-2">
-            {files.map((file, index) => (
+            {files.map((file,index) => (
                 <div
                     key={index}
                     className="border rounded-md p-3 text-sm bg-gray-100"
@@ -67,7 +80,6 @@ export default function Home() {
                 </div>
             ))}
           </div>
-
         </div>
       </div>
   );
