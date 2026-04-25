@@ -9,6 +9,7 @@ type RepoFile = { // the files that we get from request, we describe the bluepri
 };
 
 export default function Home() {
+  const [explanation, setExplanation] = useState(""); // AI explanation
   const [err, setErr]=useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [files, setFiles] = useState<RepoFile[]>([]);
@@ -19,15 +20,24 @@ export default function Home() {
     try {
       setLoading(true);
       setErr("");
+      setExplanation("");// resets previous explanation
       const res = await axios.post("/api/github",{repoUrl})
       console.log(res) // returns an obj type, we only need res.data.file
       console.log("API response:", res.data);
 
       if(res.data.error){
         setErr(res.data.error);
+        setFiles([]);//prevents old files from showing
         return;
       }
       setFiles(res.data.files || []); // res.data.file stored
+
+      // Send the files and the repo names to api/explain for AI to explain
+      const aiRes = await axios.post("/api/explain", {
+        files: res.data.files,
+        repoUrl,
+      });
+      setExplanation(aiRes.data.explanation); // The AI based explanation is stored here
     }
     catch (error) {
       console.error(error);
@@ -59,6 +69,7 @@ export default function Home() {
           {/* Button */}
           <button
               onClick={fetchRepo}
+              disabled={loading}
               className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition"
           >
             {loading ? "Analyzing..." : "Analyze Repo"}
@@ -78,6 +89,14 @@ export default function Home() {
                   {file.name}
                 </div>
             ))}
+            {explanation && (
+                <div className="mt-6 p-4 border rounded-md bg-white">
+                  <h2 className="font-semibold mb-2">AI Explanation</h2>
+                  <p className="text-sm whitespace-pre-line">
+                    {explanation}
+                  </p>
+                </div>
+            )}
           </div>
         </div>
       </div>
